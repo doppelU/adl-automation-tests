@@ -1,0 +1,15 @@
+{
+	"id": "9e01f5fd-e4b5-41a7-a812-6d12be7e6e01",
+	"name": "dev",
+	"values": [
+		{
+			"key": "newlyCreatedClientId",
+			"value": "pm.environment.set()",
+			"type": "default",
+			"enabled": true
+		}
+	],
+	"_postman_variable_scope": "environment",
+	"_postman_exported_at": "2025-07-27T16:30:06.587Z",
+	"_postman_exported_using": "Postman/11.55.5"
+}

@@ -1,0 +1,372 @@
+{
+	"info": {
+		"_postman_id": "8f4094bb-2e24-40af-82ba-f946834222d5",
+		"name": "ADL Backend API Tests",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "46452314",
+		"_collection_link": "https://davidulloa-6013239.postman.co/workspace/David-Ulloa's-Workspace~de023789-63c6-4f01-8d55-eb605a274f56/collection/46452314-8f4094bb-2e24-40af-82ba-f946834222d5?action=share&source=collection_link&creator=46452314"
+	},
+	"item": [
+		{
+			"name": "Obtener clientes",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200 OK\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"pm.test(\"Response is an array of clients\", function () {\r",
+							"    pm.expect(pm.response.json()).to.be.an('array');\r",
+							"});\r",
+							"pm.test(\"Array is not empty and contains client objects\", function () {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    pm.expect(responseJson.length).to.be.above(0);\r",
+							"    if (responseJson.length > 0) {\r",
+							"        pm.expect(responseJson[0]).to.have.property('id');\r",
+							"        pm.expect(responseJson[0]).to.have.property('name');\r",
+							"        // Agrega más propiedades que esperes en un cliente\r",
+							"    }\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "mSqiBUjzz51YG5Q0OahqEP4rOrnwlIJLGKrktD6Le3d8edf8",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}api/clients",
+					"host": [
+						"{{baseUrl}}api"
+					],
+					"path": [
+						"clients"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Borrar clientes",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 204 No Content or 200 OK\", function () {\r",
+							"    // APIs a menudo devuelven 204 (No Content) para una eliminación exitosa sin cuerpo\r",
+							"    // O 200 OK con un mensaje de confirmación\r",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 204]);\r",
+							"});\r",
+							"\r",
+							"// Opcional: Verificar que el cliente ya no existe (requiere otra petición GET)\r",
+							"pm.test(\"Client should no longer exist after deletion (verify with GET)\", function () {\r",
+							"    pm.sendRequest({\r",
+							"        url: pm.environment.get(\"baseUrl\") + \"/api/clients/\" + pm.environment.get(\"newlyCreatedClientId\"),\r",
+							"        method: 'GET',\r",
+							"        header: {\r",
+							"            'Authorization': 'Bearer ' + pm.environment.get(\"bearerToken\")\r",
+							"        }\r",
+							"    }, function (err, res) {\r",
+							"        pm.expect(res.code).to.be.oneOf([404, 200]); // Debería ser 404 Not Found si se eliminó\r",
+							"        // Si la API devuelve 200 pero un cuerpo vacío/nulo para un ID no existente, también lo puedes validar\r",
+							"    });\r",
+							"});\r",
+							"\r",
+							"// Opcional: Limpiar la variable de entorno del ID si ya no se va a usar\r",
+							"pm.environment.unset(\"newlyCreatedClientId\");"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "mSqiBUjzz51YG5Q0OahqEP4rOrnwlIJLGKrktD6Le3d8edf8",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}api/clients/{{newlyCreatedClientId}}",
+					"host": [
+						"{{baseUrl}}api"
+					],
+					"path": [
+						"clients",
+						"{{newlyCreatedClientId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Actualizar clientes",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200 OK\", function () {\r",
+							"    pm.response.to.have.status(200); // O 204 No Content si la API no devuelve cuerpo en PUT\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response is JSON\", function () {\r",
+							"    pm.response.to.be.json;\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Updated client name matches request\", function () {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    const requestBody = JSON.parse(pm.request.body.raw);\r",
+							"    pm.expect(responseJson.name).to.eql(requestBody.name);\r",
+							"    pm.expect(responseJson.email).to.eql(requestBody.email);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Updated client ID matches expected\", function () {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    pm.expect(responseJson.id).to.eql(pm.environment.get(\"newlyCreatedClientId\"));\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "mSqiBUjzz51YG5Q0OahqEP4rOrnwlIJLGKrktD6Le3d8edf8",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"id\": 303,\r\n    \"name\": \"Diego Maradona\",\r\n    \"cuit\": \"15-5648987-15\",\r\n    \"email\": \"diego.maradonalomasgrande@example.com\",\r\n    \"phone\": \"+56 9 9999 9995\",\r\n    \"address\": \"grand line 553\",\r\n    \"balance\": \"515151.75\",\r\n    \"is_active\": true\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}api/clients/{{newlyCreatedClientId}}",
+					"host": [
+						"{{baseUrl}}api"
+					],
+					"path": [
+						"clients",
+						"{{newlyCreatedClientId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "registro nuevo cliente",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 201 Created\", function () {\r",
+							"    pm.response.to.have.status(201);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response is JSON\", function () {\r",
+							"    pm.response.to.be.json;\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response body contains 'id' property\", function () {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    pm.expect(responseJson).to.have.property('id');\r",
+							"    pm.expect(responseJson.id).to.be.a('number'); // Asumiendo que el ID es un número\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response body contains the correct name\", function () {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    const requestBody = JSON.parse(pm.request.body.raw); // Obtener el body enviado\r",
+							"    pm.expect(responseJson.name).to.eql(requestBody.name);\r",
+							"});\r",
+							"\r",
+							"// Opcional: Guardar el ID del cliente creado para usarlo en otras peticiones (ej. GET o DELETE)\r",
+							"pm.environment.set(\"newlyCreatedClientId\", pm.response.json().id);\r",
+							"console.log(\"Newly Created Client ID:\", pm.environment.get(\"newlyCreatedClientId\"));"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "mSqiBUjzz51YG5Q0OahqEP4rOrnwlIJLGKrktD6Le3d8edf8",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"id\": 111,\r\n    \"name\": \"Diego Maradona\",\r\n    \"cuit\": \"15-5648987-15\",\r\n    \"email\": \"diego.maradonalomasgrande@example.com\",\r\n    \"phone\": \"+56 9 9999 9995\",\r\n    \"address\": \"LINEAZO 1234\",\r\n    \"balance\": \"515151.75\",\r\n    \"is_active\": true,\r\n    \"created_at\": \"2025-07-23T22:48:04.000000Z\",\r\n    \"updated_at\": \"2025-07-23T22:48:04.000000Z\",\r\n    \"deleted_at\": null\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}api/clients",
+					"host": [
+						"{{baseUrl}}api"
+					],
+					"path": [
+						"clients"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Obtener productos",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "mSqiBUjzz51YG5Q0OahqEP4rOrnwlIJLGKrktD6Le3d8edf8",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}api/products",
+					"host": [
+						"{{baseUrl}}api"
+					],
+					"path": [
+						"products"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "\nmSqiBUjzz51YG5Q0OahqEP4rOrnwlIJLGKrktD6Le3d8edf8",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://api-tester-adl.leonardojose.dev/",
+			"type": "default"
+		}
+	]
+}
